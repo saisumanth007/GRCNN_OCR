@@ -7,6 +7,8 @@ def str2label(strs, max_len):
 			label = ascii_val - 64 + 10
 		elif ascii_val >= 97 and ascii_val <= 122: # 'a'-'z' are mapped to 11-36
 			label = ascii_val - 96 + 10
+		else:
+			label = 0
 		return label
 
 	num_strings = len(strs)

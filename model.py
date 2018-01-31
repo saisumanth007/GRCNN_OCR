@@ -16,20 +16,9 @@ epochs = 1
 
 def ctc_lambda_func(args):
     y_pred, labels, input_length, label_length = args
-    # the 2 is critical here since the first couple outputs of the RNN
-    # tend to be garbage:
-    y_pred = y_pred[:, 2:, :]
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
 def create_model():
-	nl = nclasses + 1
-
-	def conv_relu(input, n_out, k_size, stride_size, batch_norm = False):
-		out = Conv2D(n_out, kernel_size = (k_size,k_size), strides = (stride_size,stride_size), padding = 'same')(input)
-		if batch_norm:
-			out = BatchNormalization()(out)
-		out = Activation('relu')(out)
-		return out
 
 	def GRCL(inp, n_out, n_iter, f_size):
 	
@@ -94,14 +83,15 @@ def create_model():
 	y_pred = Activation('softmax')(lstm2)
 
 	labels = Input(name='the_labels', shape=[max_len], dtype='float32')
-	input_length = Input(name='input_length', shape=[1], dtype='int64')
-	label_length = Input(name='label_length', shape=[1], dtype='int64')
+	input_length = Input(name='input_length', shape=[1], dtype='float32')
+	label_length = Input(name='label_length', shape=[1], dtype='float32')
 
 	loss_out = Lambda(ctc_lambda_func, output_shape=(1,), name='ctc')([y_pred, labels, input_length, label_length])
 
-	sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+	# sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+	ada = Adadelta(lr=0.01, rho=0.9)
 
 	model = Model(inputs=[inp, labels, input_length, label_length], outputs=loss_out)
-	model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+	model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=ada)
 
 	return model
