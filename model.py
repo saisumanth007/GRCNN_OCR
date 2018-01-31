@@ -10,9 +10,6 @@ import numpy as np
 nclasses = 36
 nl = nclasses+1
 max_len = 26
-train_batch_size = 10
-val_batch_size = 10
-epochs = 1
 
 def ctc_lambda_func(args):
     y_pred, labels, input_length, label_length = args
@@ -79,7 +76,7 @@ def create_model():
 
 	rout= Reshape((int(out.shape[1]*out.shape[2]),int(out.shape[3])))(out)
 	lstm1=Bidirectional(LSTM(512, return_sequences=True),merge_mode='sum')(rout)
-	lstm2=Bidirectional(LSTM(nclasses+1,return_sequences=True),merge_mode='sum')(lstm1)
+	lstm2=Bidirectional(LSTM(nl,return_sequences=True),merge_mode='sum')(lstm1)
 	y_pred = Activation('softmax')(lstm2)
 
 	labels = Input(name='the_labels', shape=[max_len], dtype='float32')
